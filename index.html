@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AI Vision Gate</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f0f0f;
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #00d4ff;
+  }
+  .header h1 { font-size: 18px; color: #00d4ff; }
+  .header .status-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #ff4444;
+    animation: pulse 1.5s infinite;
+  }
+  .status-dot.active { background: #00ff88; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Config Panel */
+  .config-panel {
+    background: #1a1a2e;
+    margin: 12px;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid #333;
+  }
+  .config-panel h3 { color: #00d4ff; font-size: 13px; margin-bottom: 10px; }
+  .config-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .config-row label { font-size: 11px; color: #aaa; width: 100px; flex-shrink: 0; }
+  .config-row input {
+    flex: 1;
+    background: #0f0f0f;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+
+  /* Camera */
+  .camera-section {
+    margin: 0 12px 12px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #333;
+    background: #000;
+    aspect-ratio: 4/3;
+  }
+  #videoFeed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .camera-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .scan-frame {
+    width: 80%;
+    height: 40%;
+    border: 3px solid #00d4ff;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,212,255,0.3);
+    position: relative;
+  }
+  .scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+    animation: scan 2s infinite;
+  }
+  @keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+  .scan-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #00d4ff;
+    white-space: nowrap;
+  }
+
+  /* Result Box */
+  .result-box {
+    margin: 0 12px 12px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid #333;
+    min-height: 80px;
+  }
+  .result-title { font-size: 11px; color: #888; margin-bottom: 8px; }
+  .result-plate {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    text-align: center;
+    color: #fff;
+    margin: 8px 0;
+  }
+  .result-status {
+    text-align: center;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 8px 0;
+  }
+  .status-pass { background: rgba(0,255,136,0.2); color: #00ff88; border: 1px solid #00ff88; }
+  .status-fail { background: rgba(255,68,68,0.2); color: #ff4444; border: 1px solid #ff4444; }
+  .status-guest { background: rgba(255,200,0,0.2); color: #ffc800; border: 1px solid #ffc800; }
+  .status-idle { background: rgba(100,100,100,0.2); color: #888; border: 1px solid #555; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin: 0 12px 12px;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-scan { background: linear-gradient(135deg, #00d4ff, #0099cc); color: #000; }
+  .btn-scan:disabled { background: #333; color: #666; }
+  .btn-id { background: linear-gradient(135deg, #ffc800, #ff9900); color: #000; }
+  .btn-manual { background: linear-gradient(135deg, #00ff88, #00cc66); color: #000; }
+  .btn-icon { font-size: 20px; }
+  .btn-text { font-size: 12px; }
+
+  /* Log */
+  .log-section {
+    margin: 0 12px 12px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid #333;
+  }
+  .log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .log-header h3 { font-size: 13px; color: #00d4ff; }
+  .log-clear { background: none; border: 1px solid #444; color: #888; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .log-list { max-height: 200px; overflow-y: auto; }
+  .log-item {
+    display: flex;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #222;
+    font-size: 12px;
+    align-items: center;
+  }
+  .log-time { color: #666; flex-shrink: 0; width: 55px; }
+  .log-plate { font-weight: bold; flex: 1; }
+  .log-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+  }
+  .badge-pass { background: rgba(0,255,136,0.2); color: #00ff88; }
+  .badge-guest { background: rgba(255,200,0,0.2); color: #ffc800; }
+
+  /* ID Card Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: #1a1a2e;
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #00d4ff;
+  }
+  .modal-title { color: #00d4ff; font-size: 16px; margin-bottom: 16px; }
+  .id-result {
+    background: #0f0f0f;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .id-result .label { color: #888; font-size: 11px; }
+  .id-result .value { color: #fff; font-weight: bold; }
+  .modal-btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
+  .modal-btn-save { background: #00ff88; color: #000; }
+  .modal-btn-cancel { background: #333; color: #fff; }
+
+  /* Loading */
+  .loading {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .loading.show { display: flex; }
+  .spinner {
+    width: 50px; height: 50px;
+    border: 4px solid #333;
+    border-top: 4px solid #00d4ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: #00d4ff; font-size: 14px; }
+
+  canvas { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>🚗 AI Vision Gate</h1>
+  <div class="status-dot" id="statusDot"></div>
+</div>
+
+<!-- Config -->
+<div class="config-panel">
+  <h3>⚙️ ตั้งค่าระบบ</h3>
+  <div class="config-row">
+    <label>Gemini API Key</label>
+    <input type="password" id="geminiKey" placeholder="AIza..." />
+  </div>
+  <div class="config-row">
+    <label>ESP32 IP Address</label>
+    <input type="text" id="esp32IP" placeholder="192.168.1.xxx" />
+  </div>
+  <div class="config-row">
+    <label>Google Sheet ID</label>
+    <input type="text" id="sheetId" placeholder="Sheet ID สำหรับทะเบียนรถ" />
+  </div>
+  <div class="config-row">
+    <label>Apps Script URL</label>
+    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/..." />
+  </div>
+</div>
+
+<!-- Camera -->
+<div class="camera-section">
+  <video id="videoFeed" autoplay playsinline muted></video>
+  <div class="camera-overlay">
+    <div class="scan-frame">
+      <div class="scan-line"></div>
+      <span class="scan-label">วางป้ายทะเบียนในกรอบ</span>
+    </div>
+  </div>
+</div>
+<canvas id="captureCanvas"></canvas>
+
+<!-- Result -->
+<div class="result-box">
+  <div class="result-title">ผลการตรวจสอบ</div>
+  <div class="result-plate" id="plateTxt">-</div>
+  <div class="result-status status-idle" id="statusTxt">รอการสแกน...</div>
+  <div id="ownerTxt" style="text-align:center;font-size:12px;color:#888;margin-top:6px;"></div>
+</div>
+
+<!-- Buttons -->
+<div class="btn-row">
+  <button class="btn btn-scan" id="btnScan" onclick="scanPlate()">
+    <span class="btn-icon">📸</span>
+    <span class="btn-text">สแกนทะเบียน</span>
+  </button>
+  <button class="btn btn-id" onclick="scanIDCard()">
+    <span class="btn-icon">🪪</span>
+    <span class="btn-text">สแกนบัตร ปชช.</span>
+  </button>
+  <button class="btn btn-manual" onclick="openGateManual()">
+    <span class="btn-icon">🔓</span>
+    <span class="btn-text">เปิดด่วน</span>
+  </button>
+</div>
+
+<!-- Log -->
+<div class="log-section">
+  <div class="log-header">
+    <h3>📋 บันทึกเข้า-ออก</h3>
+    <button class="log-clear" onclick="clearLog()">ล้าง</button>
+  </div>
+  <div class="log-list" id="logList">
+    <div style="color:#555;font-size:12px;text-align:center;padding:20px;">ยังไม่มีข้อมูล</div>
+  </div>
+</div>
+
+<!-- ID Card Modal -->
+<div class="modal" id="idModal">
+  <div class="modal-content">
+    <div class="modal-title">🪪 ข้อมูลผู้มาติดต่อ</div>
+    <div class="id-result" id="idResult">กำลังอ่านบัตร...</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn modal-btn-save" onclick="saveGuestAndOpen()">✅ บันทึก & เปิดประตู</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">❌ ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">กำลังประมวลผล...</div>
+</div>
+
+<script>
+// ===== STATE =====
+let stream = null;
+let currentPlate = '';
+let currentIDData = null;
+let logData = [];
+let scanMode = 'plate'; // 'plate' or 'id'
+
+// ===== INIT CAMERA =====
+async function initCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    document.getElementById('videoFeed').srcObject = stream;
+    document.getElementById('statusDot').classList.add('active');
+  } catch(e) {
+    alert('ไม่สามารถเปิดกล้องได้: ' + e.message);
+  }
+}
+
+// ===== CAPTURE FRAME =====
+function captureFrame() {
+  const video = document.getElementById('videoFeed');
+  const canvas = document.getElementById('captureCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+}
+
+// ===== CALL GEMINI API =====
+async function callGemini(base64Image, prompt) {
+  const apiKey = document.getElementById('geminiKey').value.trim();
+  if (!apiKey) { alert('กรุณาใส่ Gemini API Key ก่อน'); return null; }
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: 'image/jpeg', data: base64Image } }
+        ]
+      }],
+      generationConfig: { temperature: 0.1, maxOutputTokens: 500 }
+    })
+  });
+
+  const data = await response.json();
+  if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+    return data.candidates[0].content.parts[0].text.trim();
+  }
+  return null;
+}
+
+// ===== SCAN LICENSE PLATE =====
+async function scanPlate() {
+  showLoading('กำลังอ่านทะเบียน...');
+  const btn = document.getElementById('btnScan');
+  btn.disabled = true;
+
+  try {
+    const img = captureFrame();
+    const prompt = `อ่านป้ายทะเบียนรถในภาพนี้ ตอบเฉพาะเลขทะเบียนเท่านั้น เช่น "กข 1234 กรุงเทพ" หรือ "5กข 678 ขอนแก่น" ถ้าไม่เห็นทะเบียน ตอบว่า "ไม่พบ"`;
+    const result = await callGemini(img, prompt);
+
+    if (!result || result === 'ไม่พบ') {
+      showResult('-', 'ไม่พบป้ายทะเบียน', 'idle', '');
+    } else {
+      currentPlate = result.toUpperCase().replace(/\s+/g, ' ').trim();
+      document.getElementById('plateTxt').textContent = currentPlate;
+      await checkPlateInSheet(currentPlate);
+    }
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+  }
+
+  btn.disabled = false;
+  hideLoading();
+}
+
+// ===== CHECK PLATE IN GOOGLE SHEET =====
+async function checkPlateInSheet(plate) {
+  const appsScriptUrl = document.getElementById('appsScriptUrl').value.trim();
+  if (!appsScriptUrl) {
+    showResult(plate, '⚠️ ยังไม่ได้ตั้งค่า Apps Script', 'idle', 'กรุณาใส่ URL ของ Apps Script');
+    return;
+  }
+
+  showLoading('กำลังเช็คทะเบียน...');
+
+  try {
+    const url = `${appsScriptUrl}?action=checkPlate&plate=${encodeURIComponent(plate)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.found) {
+      showResult(plate, '✅ อนุญาต - เปิดประตู!', 'pass', `เจ้าของ: ${data.owner || '-'} | บ้านเลขที่: ${data.house || '-'}`);
+      await openGateESP32();
+      addLog(plate, 'pass', data.owner || '');
+    } else {
+      showResult(plate, '⚠️ ไม่พบในระบบ - กรุณาแจ้งยาม', 'guest', 'รถไม่ได้ลงทะเบียน');
+      addLog(plate, 'guest', 'ไม่ทราบ');
+    }
+  } catch(e) {
+    showResult(plate, '❌ เชื่อม Sheet ไม่ได้', 'fail', e.message);
+  }
+
+  hideLoading();
+}
+
+// ===== OPEN GATE via ESP32 =====
+async function openGateESP32() {
+  const ip = document.getElementById('esp32IP').value.trim();
+  if (!ip) return;
+
+  try {
+    await fetch(`http://${ip}/open`, { method: 'GET', mode: 'cors' });
+    console.log('✅ Gate opened via ESP32');
+  } catch(e) {
+    console.warn('ESP32 connect failed:', e.message);
+  }
+}
+
+async function openGateManual() {
+  await openGateESP32();
+  addLog('เปิดด่วน', 'pass', 'Manual');
+  showResult('MANUAL', '✅ เปิดประตูด่วน', 'pass', 'เปิดโดยเจ้าหน้าที่');
+}
+
+// ===== SCAN ID CARD =====
+async function scanIDCard() {
+  scanMode = 'id';
+  showLoading('กำลังอ่านบัตรประชาชน...');
+
+  try {
+    const img = captureFrame();
+    const prompt = `อ่านบัตรประชาชนไทยในภาพ ตอบเป็น JSON เท่านั้น รูปแบบ:
+{"id":"เลขบัตร 13 หลัก","name":"ชื่อ-นามสกุล","dob":"วันเกิด","address":"ที่อยู่"}
+ถ้าไม่เห็นบัตร ตอบ: {"error":"ไม่พบบัตร"}`;
+
+    const result = await callGemini(img, prompt);
+
+    try {
+      const jsonStr = result.replace(/```json|```/g, '').trim();
+      const idData = JSON.parse(jsonStr);
+
+      if (idData.error) {
+        alert('ไม่พบบัตรประชาชนในภาพ กรุณาลองใหม่');
+      } else {
+        currentIDData = idData;
+        showIDModal(idData);
+      }
+    } catch(e) {
+      alert('อ่านบัตรไม่ได้ กรุณาถ่ายใหม่ให้ชัดขึ้น');
+    }
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+  }
+
+  hideLoading();
+}
+
+// ===== SHOW ID MODAL =====
+function showIDModal(data) {
+  document.getElementById('idResult').innerHTML = `
+    <div><span class="label">เลขบัตร: </span><span class="value">${data.id || '-'}</span></div>
+    <div><span class="label">ชื่อ-สกุล: </span><span class="value">${data.name || '-'}</span></div>
+    <div><span class="label">วันเกิด: </span><span class="value">${data.dob || '-'}</span></div>
+    <div><span class="label">ที่อยู่: </span><span class="value">${data.address || '-'}</span></div>
+    <div><span class="label">เวลา: </span><span class="value">${new Date().toLocaleString('th-TH')}</span></div>
+  `;
+  document.getElementById('idModal').classList.add('show');
+}
+
+// ===== SAVE GUEST & OPEN GATE =====
+async function saveGuestAndOpen() {
+  closeModal();
+  if (!currentIDData) return;
+
+  showLoading('กำลังบันทึกและเปิดประตู...');
+
+  const appsScriptUrl = document.getElementById('appsScriptUrl').value.trim();
+  if (appsScriptUrl) {
+    try {
+      await fetch(`${appsScriptUrl}?action=saveGuest`, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...currentIDData,
+          plate: currentPlate,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch(e) { console.warn('Save failed:', e); }
+  }
+
+  await openGateESP32();
+  addLog(currentPlate || 'แขก', 'guest', currentIDData.name || '-');
+  showResult(currentPlate || '-', '✅ บันทึกแล้ว - เปิดประตู!', 'pass', `ผู้มาติดต่อ: ${currentIDData.name || '-'}`);
+
+  hideLoading();
+}
+
+function closeModal() {
+  document.getElementById('idModal').classList.remove('show');
+}
+
+// ===== UI HELPERS =====
+function showResult(plate, status, type, owner) {
+  document.getElementById('plateTxt').textContent = plate;
+  const statusEl = document.getElementById('statusTxt');
+  statusEl.textContent = status;
+  statusEl.className = 'result-status status-' + type;
+  document.getElementById('ownerTxt').textContent = owner;
+}
+
+function addLog(plate, type, owner) {
+  const now = new Date();
+  const time = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  logData.unshift({ time, plate, type, owner });
+  if (logData.length > 50) logData.pop();
+  renderLog();
+}
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  if (logData.length === 0) {
+    list.innerHTML = '<div style="color:#555;font-size:12px;text-align:center;padding:20px;">ยังไม่มีข้อมูล</div>';
+    return;
+  }
+  list.innerHTML = logData.map(item => `
+    <div class="log-item">
+      <span class="log-time">${item.time}</span>
+      <span class="log-plate">${item.plate}</span>
+      <span style="font-size:11px;color:#888;">${item.owner}</span>
+      <span class="log-badge badge-${item.type}">${item.type === 'pass' ? 'ผ่าน' : 'แขก'}</span>
+    </div>
+  `).join('');
+}
+
+function clearLog() {
+  logData = [];
+  renderLog();
+}
+
+function showLoading(text) {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loading').classList.add('show');
+}
+
+function hideLoading() {
+  document.getElementById('loading').classList.remove('show');
+}
+
+// ===== LOAD SAVED CONFIG =====
+function loadConfig() {
+  const keys = ['geminiKey', 'esp32IP', 'sheetId', 'appsScriptUrl'];
+  keys.forEach(k => {
+    const val = localStorage.getItem('gate_' + k);
+    if (val) document.getElementById(k).value = val;
+  });
+}
+
+function saveConfig() {
+  const keys = ['geminiKey', 'esp32IP', 'sheetId', 'appsScriptUrl'];
+  keys.forEach(k => {
+    localStorage.setItem('gate_' + k, document.getElementById(k).value);
+  });
+}
+
+// Auto-save config on change
+document.querySelectorAll('.config-row input').forEach(input => {
+  input.addEventListener('change', saveConfig);
+});
+
+// ===== START =====
+loadConfig();
+initCamera();
+</script>
+</body>
+</html>
