@@ -2,127 +2,201 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AI Vision Gate v3</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; overflow-x: hidden; }
-  .header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #00d4ff; }
-  .header h1 { font-size: 18px; color: #00d4ff; }
-  .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ff4444; animation: pulse 1.5s infinite; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; min-height: 100vh; overflow-x: hidden; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0d1117, #161b27);
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 2px solid #00d4ff;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header h1 { font-size: 17px; color: #00d4ff; font-weight: 700; letter-spacing: 0.5px; }
+  .header-badge { background: rgba(0,212,255,0.15); border: 1px solid #00d4ff; color: #00d4ff; font-size: 10px; padding: 2px 8px; border-radius: 20px; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4444; animation: pulse 1.5s infinite; flex-shrink: 0; }
   .status-dot.active { background: #00ff88; }
-  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  .config-panel { background: #1a1a2e; margin: 12px; border-radius: 12px; padding: 14px; border: 1px solid #333; }
-  .config-panel h3 { color: #00d4ff; font-size: 13px; margin-bottom: 10px; }
+  /* CONFIG */
+  .config-panel { background: #0d1117; margin: 12px; border-radius: 12px; padding: 14px; border: 1px solid #21262d; }
+  .config-panel h3 { color: #8b949e; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
   .config-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-  .config-row label { font-size: 11px; color: #aaa; width: 110px; flex-shrink: 0; }
-  .config-row input { flex: 1; background: #0f0f0f; border: 1px solid #444; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+  .config-row label { font-size: 11px; color: #8b949e; width: 100px; flex-shrink: 0; }
+  .config-row input {
+    flex: 1; background: #161b27; border: 1px solid #30363d; color: #e6edf3;
+    padding: 7px 10px; border-radius: 6px; font-size: 12px; transition: border .2s;
+  }
+  .config-row input:focus { outline: none; border-color: #00d4ff; }
 
-  .info-box { background: rgba(0,200,255,0.08); border: 1px solid rgba(0,200,255,0.3); border-radius: 8px; padding: 10px 12px; margin: 0 12px 12px; font-size: 12px; color: #00d4ff; }
-  .info-box span { color: #888; display: block; font-size: 11px; margin-top: 3px; }
+  .info-box {
+    background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.25);
+    border-radius: 10px; padding: 10px 14px; margin: 0 12px 12px;
+    font-size: 12px; color: #00d4ff; display: flex; align-items: flex-start; gap: 8px;
+  }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .info-box span { color: #8b949e; display: block; font-size: 11px; margin-top: 2px; }
 
-  .camera-section { margin: 0 12px 12px; position: relative; border-radius: 12px; overflow: hidden; border: 2px solid #333; background: #000; aspect-ratio: 4/3; }
-  #videoFeed { width: 100%; height: 100%; object-fit: cover; }
-  .camera-overlay { position: absolute; top:0;left:0;right:0;bottom:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
-  .scan-frame { width:80%; height:40%; border:3px solid #00d4ff; border-radius:8px; box-shadow:0 0 20px rgba(0,212,255,.3); position:relative; }
-  .scan-line { position:absolute; top:0;left:0;right:0; height:3px; background:linear-gradient(90deg,transparent,#00d4ff,transparent); animation:scan 2s infinite; }
-  @keyframes scan { 0%{top:0}100%{top:100%} }
-  .scan-label { position:absolute; bottom:-25px; left:50%; transform:translateX(-50%); font-size:11px; color:#00d4ff; white-space:nowrap; }
+  /* CAMERA */
+  .camera-section {
+    margin: 0 12px 12px; position: relative;
+    border-radius: 14px; overflow: hidden;
+    border: 2px solid #21262d; background: #000;
+    aspect-ratio: 4/3;
+  }
+  #videoFeed { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .camera-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .scan-frame {
+    width: 78%; height: 38%; border: 2.5px solid #00d4ff; border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(0,212,255,.2), 0 0 30px rgba(0,212,255,.15);
+    position: relative;
+  }
+  /* มุมกรอบ */
+  .scan-frame::before, .scan-frame::after,
+  .scan-frame .corner-br, .scan-frame .corner-bl {
+    content: ''; position: absolute; width: 16px; height: 16px; border-color: #00d4ff; border-style: solid;
+  }
+  .scan-frame::before { top: -3px; left: -3px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .scan-frame::after { top: -3px; right: -3px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+  .scan-frame .corner-br { bottom: -3px; right: -3px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+  .scan-frame .corner-bl { bottom: -3px; left: -3px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+  .scan-line {
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+    animation: scan 2s ease-in-out infinite;
+  }
+  @keyframes scan { 0%{top:0;opacity:1} 95%{top:100%;opacity:.3} 100%{top:0;opacity:0} }
+  .scan-label { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #8b949e; white-space: nowrap; }
 
-  .result-box { margin:0 12px 12px; background:#1a1a2e; border-radius:12px; padding:14px; border:1px solid #333; min-height:80px; }
-  .result-title { font-size:11px; color:#888; margin-bottom:8px; }
-  .result-plate { font-size:28px; font-weight:bold; letter-spacing:4px; text-align:center; color:#fff; margin:8px 0; }
-  .result-status { text-align:center; padding:8px 16px; border-radius:20px; font-size:14px; font-weight:bold; margin:8px 0; }
-  .status-pass { background:rgba(0,255,136,.2); color:#00ff88; border:1px solid #00ff88; }
-  .status-fail { background:rgba(255,68,68,.2); color:#ff4444; border:1px solid #ff4444; }
-  .status-guest { background:rgba(255,200,0,.2); color:#ffc800; border:1px solid #ffc800; }
-  .status-idle { background:rgba(100,100,100,.2); color:#888; border:1px solid #555; }
+  /* RESULT */
+  .result-box { margin: 0 12px 12px; background: #0d1117; border-radius: 12px; padding: 14px; border: 1px solid #21262d; min-height: 90px; }
+  .result-title { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .result-plate { font-size: 30px; font-weight: 800; letter-spacing: 5px; text-align: center; color: #e6edf3; margin: 6px 0; font-variant-numeric: tabular-nums; }
+  .result-status { text-align: center; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; margin: 8px 0; }
+  .status-pass   { background: rgba(0,255,136,.12); color: #00ff88; border: 1px solid rgba(0,255,136,.4); }
+  .status-fail   { background: rgba(255,68,68,.12); color: #ff6b6b; border: 1px solid rgba(255,68,68,.4); }
+  .status-guest  { background: rgba(255,200,0,.12); color: #ffc800; border: 1px solid rgba(255,200,0,.4); }
+  .status-idle   { background: rgba(100,100,120,.15); color: #8b949e; border: 1px solid #30363d; }
+  .result-owner  { text-align: center; font-size: 12px; color: #8b949e; margin-top: 4px; }
 
-  .btn-row { display:flex; gap:8px; margin:0 12px 12px; }
-  .btn { flex:1; padding:14px; border:none; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer; transition:all .2s; display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .btn:active { transform:scale(.96); }
-  .btn-scan { background:linear-gradient(135deg,#00d4ff,#0099cc); color:#000; }
-  .btn-scan:disabled { background:#333; color:#666; }
-  .btn-id { background:linear-gradient(135deg,#ffc800,#ff9900); color:#000; }
-  .btn-manual { background:linear-gradient(135deg,#00ff88,#00cc66); color:#000; }
-  .btn-icon { font-size:20px; }
-  .btn-text { font-size:12px; }
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 8px; margin: 0 12px 12px; }
+  .btn {
+    flex: 1; padding: 14px 8px; border: none; border-radius: 12px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(.95); filter: brightness(.85); }
+  .btn:disabled { opacity: .4; pointer-events: none; }
+  .btn-scan   { background: linear-gradient(135deg, #00d4ff, #0088bb); color: #000; }
+  .btn-id     { background: linear-gradient(135deg, #ffc800, #e08800); color: #000; }
+  .btn-manual { background: linear-gradient(135deg, #00ff88, #00aa55); color: #000; }
+  .btn-icon   { font-size: 22px; line-height: 1; }
+  .btn-text   { font-size: 11px; font-weight: 700; }
 
-  .log-section { margin:0 12px 12px; background:#1a1a2e; border-radius:12px; padding:14px; border:1px solid #333; }
-  .log-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-  .log-header h3 { font-size:13px; color:#00d4ff; }
-  .log-clear { background:none; border:1px solid #444; color:#888; padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer; }
-  .log-list { max-height:200px; overflow-y:auto; }
-  .log-item { display:flex; gap:8px; padding:8px 0; border-bottom:1px solid #222; font-size:12px; align-items:center; }
-  .log-time { color:#666; flex-shrink:0; width:55px; }
-  .log-plate { font-weight:bold; flex:1; }
-  .log-badge { padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold; }
-  .badge-pass { background:rgba(0,255,136,.2); color:#00ff88; }
-  .badge-guest { background:rgba(255,200,0,.2); color:#ffc800; }
+  /* LOG */
+  .log-section { margin: 0 12px 24px; background: #0d1117; border-radius: 12px; padding: 14px; border: 1px solid #21262d; }
+  .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .log-header h3 { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+  .log-clear { background: none; border: 1px solid #30363d; color: #8b949e; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .log-clear:hover { border-color: #8b949e; }
+  .log-list { max-height: 180px; overflow-y: auto; }
+  .log-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #161b27; font-size: 12px; align-items: center; }
+  .log-item:last-child { border-bottom: none; }
+  .log-time { color: #8b949e; flex-shrink: 0; width: 52px; font-size: 11px; }
+  .log-plate { font-weight: 700; flex: 1; color: #e6edf3; font-size: 12px; }
+  .log-owner { font-size: 11px; color: #8b949e; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .badge-pass  { background: rgba(0,255,136,.15); color: #00ff88; }
+  .badge-guest { background: rgba(255,200,0,.15); color: #ffc800; }
 
-  .modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.8); z-index:100; align-items:center; justify-content:center; padding:20px; }
-  .modal.show { display:flex; }
-  .modal-content { background:#1a1a2e; border-radius:16px; padding:20px; width:100%; max-width:400px; border:1px solid #00d4ff; }
-  .modal-title { color:#00d4ff; font-size:16px; margin-bottom:16px; }
-  .id-result { background:#0f0f0f; border-radius:8px; padding:12px; margin:10px 0; font-size:13px; line-height:1.8; }
-  .id-result .label { color:#888; font-size:11px; }
-  .id-result .value { color:#fff; font-weight:bold; }
-  .modal-btn-row { display:flex; gap:8px; margin-top:14px; }
-  .modal-btn { flex:1; padding:12px; border:none; border-radius:8px; font-size:13px; font-weight:bold; cursor:pointer; }
-  .modal-btn-save { background:#00ff88; color:#000; }
-  .modal-btn-cancel { background:#333; color:#fff; }
+  /* MODAL */
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
+  .modal.show { display: flex; }
+  .modal-content { background: #0d1117; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 480px; border-top: 2px solid #00d4ff; }
+  .modal-handle { width: 40px; height: 4px; background: #30363d; border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { color: #00d4ff; font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .id-result { background: #161b27; border-radius: 10px; padding: 14px; border: 1px solid #21262d; }
+  .id-field { padding: 6px 0; border-bottom: 1px solid #21262d; display: flex; gap: 8px; }
+  .id-field:last-child { border-bottom: none; }
+  .id-label { color: #8b949e; font-size: 11px; width: 80px; flex-shrink: 0; padding-top: 1px; }
+  .id-value { color: #e6edf3; font-size: 13px; font-weight: 600; flex: 1; }
+  .modal-btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .modal-btn { flex: 1; padding: 13px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .modal-btn-save   { background: #00ff88; color: #000; }
+  .modal-btn-cancel { background: #21262d; color: #8b949e; }
 
-  .loading { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.7); z-index:200; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
-  .loading.show { display:flex; }
-  .spinner { width:50px; height:50px; border:4px solid #333; border-top:4px solid #00d4ff; border-radius:50%; animation:spin 1s linear infinite; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  .loading-text { color:#00d4ff; font-size:14px; }
-  canvas { display:none; }
+  /* LOADING */
+  .loading { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; backdrop-filter: blur(4px); }
+  .loading.show { display: flex; }
+  .spinner { width: 48px; height: 48px; border: 3px solid #21262d; border-top: 3px solid #00d4ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: #00d4ff; font-size: 14px; font-weight: 600; }
+
+  canvas { display: none; }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #0d1117; } ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🚗 AI Vision Gate <span style="font-size:11px;color:#888">v3</span></h1>
+  <div class="header-left">
+    <h1>🚗 AI Vision Gate</h1>
+    <span class="header-badge">v3</span>
+  </div>
   <div class="status-dot" id="statusDot"></div>
 </div>
 
+<!-- CONFIG -->
 <div class="config-panel">
   <h3>⚙️ ตั้งค่าระบบ</h3>
   <div class="config-row">
-    <label>ESP32 IP Address</label>
-    <input type="text" id="esp32IP" placeholder="192.168.1.xxx" />
+    <label>ESP32 IP</label>
+    <input type="text" id="esp32IP" placeholder="192.168.1.xxx" inputmode="decimal" />
   </div>
   <div class="config-row">
     <label>Apps Script URL</label>
-    <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/..." />
+    <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." />
   </div>
 </div>
 
 <div class="info-box">
-  ✅ ไม่ต้องใส่ Gemini API Key แล้ว!
-  <span>v3 ใช้ Apps Script เป็น Proxy — Gemini ทำงานผ่าน Google OAuth อัตโนมัติ</span>
+  <span class="icon">🔐</span>
+  <div>
+    ไม่ต้องใส่ Gemini API Key ในแอป!
+    <span>v3 ส่งรูปผ่าน Apps Script — Key อยู่หลังบ้านปลอดภัย 100%</span>
+  </div>
 </div>
 
+<!-- CAMERA -->
 <div class="camera-section">
   <video id="videoFeed" autoplay playsinline muted></video>
   <div class="camera-overlay">
     <div class="scan-frame">
       <div class="scan-line"></div>
+      <span class="corner-br"></span>
+      <span class="corner-bl"></span>
       <span class="scan-label">วางป้ายทะเบียนในกรอบ</span>
     </div>
   </div>
 </div>
 <canvas id="captureCanvas"></canvas>
 
+<!-- RESULT -->
 <div class="result-box">
   <div class="result-title">ผลการตรวจสอบ</div>
   <div class="result-plate" id="plateTxt">-</div>
   <div class="result-status status-idle" id="statusTxt">รอการสแกน...</div>
-  <div id="ownerTxt" style="text-align:center;font-size:12px;color:#888;margin-top:6px;"></div>
+  <div class="result-owner" id="ownerTxt"></div>
 </div>
 
+<!-- BUTTONS -->
 <div class="btn-row">
   <button class="btn btn-scan" id="btnScan" onclick="scanPlate()">
     <span class="btn-icon">📸</span>
@@ -138,20 +212,25 @@
   </button>
 </div>
 
+<!-- LOG -->
 <div class="log-section">
   <div class="log-header">
     <h3>📋 บันทึกเข้า-ออก</h3>
     <button class="log-clear" onclick="clearLog()">ล้าง</button>
   </div>
   <div class="log-list" id="logList">
-    <div style="color:#555;font-size:12px;text-align:center;padding:20px;">ยังไม่มีข้อมูล</div>
+    <div style="color:#8b949e;font-size:12px;text-align:center;padding:20px;">ยังไม่มีข้อมูล</div>
   </div>
 </div>
 
+<!-- ID MODAL -->
 <div class="modal" id="idModal">
   <div class="modal-content">
+    <div class="modal-handle"></div>
     <div class="modal-title">🪪 ข้อมูลผู้มาติดต่อ</div>
-    <div class="id-result" id="idResult">กำลังอ่านบัตร...</div>
+    <div class="id-result" id="idResult">
+      <div class="id-field"><span class="id-label">กำลังอ่าน</span><span class="id-value">...</span></div>
+    </div>
     <div class="modal-btn-row">
       <button class="modal-btn modal-btn-save" onclick="saveGuestAndOpen()">✅ บันทึก & เปิดประตู</button>
       <button class="modal-btn modal-btn-cancel" onclick="closeModal()">❌ ยกเลิก</button>
@@ -159,159 +238,171 @@
   </div>
 </div>
 
+<!-- LOADING -->
 <div class="loading" id="loading">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">กำลังประมวลผล...</div>
 </div>
 
 <script>
+// ============================================================
+// STATE
+// ============================================================
 let stream = null;
 let currentPlate = '';
 let currentIDData = null;
 let logData = [];
 
-// ===== INIT CAMERA =====
+// ============================================================
+// CAMERA
+// ============================================================
 async function initCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720} }
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
     });
     document.getElementById('videoFeed').srcObject = stream;
     document.getElementById('statusDot').classList.add('active');
-  } catch(e) {
+  } catch (e) {
     alert('ไม่สามารถเปิดกล้องได้: ' + e.message);
   }
 }
 
-// ===== CAPTURE FRAME =====
+// ============================================================
+// CAPTURE — ลดขนาดก่อนส่ง (ประหยัด quota + เร็วขึ้น)
+// ============================================================
 function captureFrame() {
   const video = document.getElementById('videoFeed');
   const canvas = document.getElementById('captureCanvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+  // จำกัดขนาดไม่เกิน 800px — ลด token ใช้กับ Gemini
+  const maxW = 800;
+  const ratio = Math.min(1, maxW / video.videoWidth);
+  canvas.width  = Math.round(video.videoWidth  * ratio);
+  canvas.height = Math.round(video.videoHeight * ratio);
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.65).split(',')[1]; // quality 0.65 เพียงพอ
 }
 
-// ===== CALL GEMINI via Apps Script Proxy =====
+// ============================================================
+// CALL GEMINI — ผ่าน Apps Script Proxy เท่านั้น
+// ============================================================
 async function callGeminiProxy(base64Image, prompt) {
-  const appsScriptUrl = document.getElementById('appsScriptUrl').value.trim();
-  if (!appsScriptUrl) {
-    alert('กรุณาใส่ Apps Script URL ก่อน');
-    return null;
-  }
+  const url = getScriptUrl();
+  if (!url) { alert('กรุณาใส่ Apps Script URL ในการตั้งค่าก่อน'); return null; }
 
-  const response = await fetch(`${appsScriptUrl}?action=scanImage`, {
+  // ⚠️ ต้องใช้ text/plain ไม่ใช่ application/json
+  // เพราะ Apps Script จะเกิด CORS preflight error ถ้าใช้ application/json
+  const response = await fetch(url + '?action=scanImage', {
     method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ image: base64Image, prompt: prompt })
   });
 
   const data = await response.json();
-
-  if (data.error) {
-    console.error('Gemini Proxy Error:', data.error);
-    alert('Gemini Error: ' + data.error);
-    return null;
-  }
-
+  if (data.error) { alert('Gemini Error: ' + data.error); return null; }
   return data.result || null;
 }
 
-// ===== SCAN LICENSE PLATE =====
+// ============================================================
+// SCAN LICENSE PLATE
+// ============================================================
 async function scanPlate() {
-  showLoading('กำลังอ่านทะเบียน...');
   const btn = document.getElementById('btnScan');
   btn.disabled = true;
+  showLoading('กำลังอ่านทะเบียน...');
 
   try {
     const img = captureFrame();
-    const prompt = `อ่านป้ายทะเบียนรถในภาพนี้ ตอบเฉพาะเลขทะเบียนเท่านั้น เช่น "กข 1234 ขอนแก่น" หรือ "5กข 678 ขอนแก่น" ถ้าไม่เห็นทะเบียน ตอบว่า "ไม่พบ"`;
+    const prompt = `อ่านป้ายทะเบียนรถในภาพนี้ ตอบเฉพาะเลขทะเบียนเท่านั้น เช่น "กข 1234 ขอนแก่น" หรือ "5กข 678 ขอนแก่น" ถ้าไม่เห็นป้ายทะเบียน ตอบว่า "ไม่พบ"`;
     const result = await callGeminiProxy(img, prompt);
 
-    if (!result || result === 'ไม่พบ') {
+    if (!result || result.includes('ไม่พบ')) {
       showResult('-', 'ไม่พบป้ายทะเบียน', 'idle', '');
     } else {
-      currentPlate = result.toUpperCase().replace(/\s+/g,' ').trim();
+      currentPlate = result.toUpperCase().replace(/\s+/g, ' ').trim();
       document.getElementById('plateTxt').textContent = currentPlate;
       await checkPlateInSheet(currentPlate);
     }
-  } catch(e) {
-    alert('เกิดข้อผิดพลาด: ' + e.message);
+  } catch (e) {
+    showResult('-', '❌ เกิดข้อผิดพลาด', 'fail', e.message);
   }
 
   btn.disabled = false;
   hideLoading();
 }
 
-// ===== CHECK PLATE IN SHEET =====
+// ============================================================
+// CHECK PLATE IN SHEET
+// ============================================================
 async function checkPlateInSheet(plate) {
-  const appsScriptUrl = document.getElementById('appsScriptUrl').value.trim();
-  if (!appsScriptUrl) return;
+  const url = getScriptUrl();
+  if (!url) return;
 
   showLoading('กำลังเช็คทะเบียน...');
 
   try {
-    const url = `${appsScriptUrl}?action=checkPlate&plate=${encodeURIComponent(plate)}`;
-    const res = await fetch(url);
+    const res = await fetch(`${url}?action=checkPlate&plate=${encodeURIComponent(plate)}`);
     const data = await res.json();
 
     if (data.found) {
-      showResult(plate, '✅ อนุญาต - เปิดประตู!', 'pass', `เจ้าของ: ${data.owner||'-'} | บ้านเลขที่: ${data.house||'-'}`);
+      showResult(plate, '✅ อนุญาต — เปิดประตู!', 'pass',
+        `เจ้าของ: ${data.owner || '-'}  |  บ้านเลขที่: ${data.house || '-'}`);
       await openGateESP32();
-      addLog(plate, 'pass', data.owner||'');
+      addLog(plate, 'pass', data.owner || '');
     } else {
-      showResult(plate, '⚠️ ไม่พบในระบบ - กรุณาแจ้งยาม', 'guest', 'รถไม่ได้ลงทะเบียน');
+      showResult(plate, '⚠️ ไม่พบในระบบ — แจ้งยามด้วย', 'guest', 'รถไม่ได้ลงทะเบียน');
       addLog(plate, 'guest', 'ไม่ทราบ');
     }
-  } catch(e) {
+  } catch (e) {
     showResult(plate, '❌ เชื่อม Sheet ไม่ได้', 'fail', e.message);
   }
 
   hideLoading();
 }
 
-// ===== OPEN GATE via ESP32 =====
+// ============================================================
+// ESP32 GATE
+// ============================================================
 async function openGateESP32() {
   const ip = document.getElementById('esp32IP').value.trim();
   if (!ip) return;
-  try {
-    await fetch(`http://${ip}/open`, { method:'GET', mode:'cors' });
-  } catch(e) {
-    console.warn('ESP32 failed:', e.message);
-  }
+  try { await fetch(`http://${ip}/open`, { method: 'GET', mode: 'cors', signal: AbortSignal.timeout(3000) }); }
+  catch (e) { console.warn('ESP32 ตอบไม่ได้:', e.message); }
 }
 
 async function openGateManual() {
   await openGateESP32();
-  addLog('เปิดด่วน', 'pass', 'Manual');
+  addLog('เปิดด่วน', 'pass', 'เจ้าหน้าที่');
   showResult('MANUAL', '✅ เปิดประตูด่วน', 'pass', 'เปิดโดยเจ้าหน้าที่');
 }
 
-// ===== SCAN ID CARD =====
+// ============================================================
+// SCAN ID CARD
+// ============================================================
 async function scanIDCard() {
   showLoading('กำลังอ่านบัตรประชาชน...');
 
   try {
     const img = captureFrame();
-    const prompt = `อ่านบัตรประชาชนไทยในภาพ ตอบเป็น JSON เท่านั้น รูปแบบ:
+    const prompt = `อ่านบัตรประชาชนไทยในภาพ ตอบเป็น JSON เท่านั้น ไม่มี markdown:
 {"id":"เลขบัตร 13 หลัก","name":"ชื่อ-นามสกุล","dob":"วันเกิด","address":"ที่อยู่"}
 ถ้าไม่เห็นบัตร ตอบ: {"error":"ไม่พบบัตร"}`;
 
     const result = await callGeminiProxy(img, prompt);
+    if (!result) { hideLoading(); return; }
 
     try {
-      const jsonStr = result.replace(/```json|```/g,'').trim();
-      const idData = JSON.parse(jsonStr);
+      const idData = JSON.parse(result.replace(/```json|```/g, '').trim());
       if (idData.error) {
         alert('ไม่พบบัตรประชาชนในภาพ กรุณาลองใหม่');
       } else {
         currentIDData = idData;
         showIDModal(idData);
       }
-    } catch(e) {
+    } catch (e) {
       alert('อ่านบัตรไม่ได้ กรุณาถ่ายใหม่ให้ชัดขึ้น');
     }
-  } catch(e) {
+  } catch (e) {
     alert('เกิดข้อผิดพลาด: ' + e.message);
   }
 
@@ -320,11 +411,11 @@ async function scanIDCard() {
 
 function showIDModal(data) {
   document.getElementById('idResult').innerHTML = `
-    <div><span class="label">เลขบัตร: </span><span class="value">${data.id||'-'}</span></div>
-    <div><span class="label">ชื่อ-สกุล: </span><span class="value">${data.name||'-'}</span></div>
-    <div><span class="label">วันเกิด: </span><span class="value">${data.dob||'-'}</span></div>
-    <div><span class="label">ที่อยู่: </span><span class="value">${data.address||'-'}</span></div>
-    <div><span class="label">เวลา: </span><span class="value">${new Date().toLocaleString('th-TH')}</span></div>
+    <div class="id-field"><span class="id-label">เลขบัตร</span><span class="id-value">${data.id || '-'}</span></div>
+    <div class="id-field"><span class="id-label">ชื่อ-สกุล</span><span class="id-value">${data.name || '-'}</span></div>
+    <div class="id-field"><span class="id-label">วันเกิด</span><span class="id-value">${data.dob || '-'}</span></div>
+    <div class="id-field"><span class="id-label">ที่อยู่</span><span class="id-value">${data.address || '-'}</span></div>
+    <div class="id-field"><span class="id-label">เวลา</span><span class="id-value">${new Date().toLocaleString('th-TH')}</span></div>
   `;
   document.getElementById('idModal').classList.add('show');
 }
@@ -334,24 +425,28 @@ async function saveGuestAndOpen() {
   if (!currentIDData) return;
   showLoading('กำลังบันทึกและเปิดประตู...');
 
-  const appsScriptUrl = document.getElementById('appsScriptUrl').value.trim();
-  if (appsScriptUrl) {
+  const url = getScriptUrl();
+  if (url) {
     try {
-      await fetch(`${appsScriptUrl}?action=saveGuest`, {
+      await fetch(url + '?action=saveGuest', {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ ...currentIDData, plate: currentPlate, timestamp: new Date().toISOString() })
       });
-    } catch(e) { console.warn('Save failed:', e); }
+    } catch (e) { console.warn('บันทึกไม่สำเร็จ:', e); }
   }
 
   await openGateESP32();
-  addLog(currentPlate||'แขก', 'guest', currentIDData.name||'-');
-  showResult(currentPlate||'-', '✅ บันทึกแล้ว - เปิดประตู!', 'pass', `ผู้มาติดต่อ: ${currentIDData.name||'-'}`);
+  addLog(currentPlate || 'แขก', 'guest', currentIDData.name || '-');
+  showResult(currentPlate || '-', '✅ บันทึกแล้ว — เปิดประตู!', 'pass', `ผู้มาติดต่อ: ${currentIDData.name || '-'}`);
   hideLoading();
 }
 
 function closeModal() { document.getElementById('idModal').classList.remove('show'); }
 
+// ============================================================
+// UI HELPERS
+// ============================================================
 function showResult(plate, status, type, owner) {
   document.getElementById('plateTxt').textContent = plate;
   const el = document.getElementById('statusTxt');
@@ -361,7 +456,7 @@ function showResult(plate, status, type, owner) {
 }
 
 function addLog(plate, type, owner) {
-  const time = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+  const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   logData.unshift({ time, plate, type, owner });
   if (logData.length > 50) logData.pop();
   renderLog();
@@ -370,35 +465,42 @@ function addLog(plate, type, owner) {
 function renderLog() {
   const list = document.getElementById('logList');
   if (!logData.length) {
-    list.innerHTML = '<div style="color:#555;font-size:12px;text-align:center;padding:20px;">ยังไม่มีข้อมูล</div>';
+    list.innerHTML = '<div style="color:#8b949e;font-size:12px;text-align:center;padding:20px;">ยังไม่มีข้อมูล</div>';
     return;
   }
   list.innerHTML = logData.map(i => `
     <div class="log-item">
       <span class="log-time">${i.time}</span>
       <span class="log-plate">${i.plate}</span>
-      <span style="font-size:11px;color:#888">${i.owner}</span>
-      <span class="log-badge badge-${i.type}">${i.type==='pass'?'ผ่าน':'แขก'}</span>
+      <span class="log-owner">${i.owner}</span>
+      <span class="log-badge badge-${i.type}">${i.type === 'pass' ? 'ผ่าน' : 'แขก'}</span>
     </div>`).join('');
 }
 
 function clearLog() { logData = []; renderLog(); }
-function showLoading(t) { document.getElementById('loadingText').textContent=t; document.getElementById('loading').classList.add('show'); }
+function showLoading(t) { document.getElementById('loadingText').textContent = t; document.getElementById('loading').classList.add('show'); }
 function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+function getScriptUrl() { return document.getElementById('appsScriptUrl').value.trim(); }
 
+// ============================================================
+// CONFIG — localStorage
+// ============================================================
 function loadConfig() {
-  ['esp32IP','appsScriptUrl'].forEach(k => {
-    const v = localStorage.getItem('gate_'+k);
+  ['esp32IP', 'appsScriptUrl'].forEach(k => {
+    const v = localStorage.getItem('gate_' + k);
     if (v) document.getElementById(k).value = v;
   });
 }
 function saveConfig() {
-  ['esp32IP','appsScriptUrl'].forEach(k => {
-    localStorage.setItem('gate_'+k, document.getElementById(k).value);
+  ['esp32IP', 'appsScriptUrl'].forEach(k => {
+    localStorage.setItem('gate_' + k, document.getElementById(k).value);
   });
 }
 document.querySelectorAll('.config-row input').forEach(i => i.addEventListener('change', saveConfig));
 
+// ============================================================
+// INIT
+// ============================================================
 loadConfig();
 initCamera();
 </script>
