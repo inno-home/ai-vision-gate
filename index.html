@@ -3,200 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AI Vision Gate v3</title>
+<title>AI Vision Gate v5</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; min-height: 100vh; overflow-x: hidden; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',sans-serif; background:#0a0a0f; color:#fff; min-height:100vh; overflow-x:hidden; }
+
+  /* LOGIN */
+  .login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:24px; }
+  .login-box { background:#0d1117; border:1px solid #21262d; border-radius:16px; padding:28px 24px; width:100%; max-width:380px; }
+  .login-logo { text-align:center; font-size:40px; margin-bottom:8px; }
+  .login-title { text-align:center; color:#00d4ff; font-size:18px; font-weight:700; margin-bottom:4px; }
+  .login-sub { text-align:center; color:#8b949e; font-size:12px; margin-bottom:24px; }
+  .login-field { margin-bottom:14px; }
+  .login-field label { display:block; font-size:11px; color:#8b949e; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+  .login-field input { width:100%; background:#161b27; border:1px solid #30363d; color:#e6edf3; padding:10px 14px; border-radius:8px; font-size:14px; }
+  .login-field input:focus { outline:none; border-color:#00d4ff; }
+  .login-url { margin-bottom:14px; }
+  .login-url label { display:block; font-size:11px; color:#8b949e; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+  .login-url input { width:100%; background:#161b27; border:1px solid #30363d; color:#e6edf3; padding:10px 14px; border-radius:8px; font-size:11px; }
+  .login-url input:focus { outline:none; border-color:#00d4ff; }
+  .login-btn { width:100%; padding:13px; background:linear-gradient(135deg,#00d4ff,#0088bb); color:#000; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; margin-top:8px; }
+  .login-error { color:#ff6b6b; font-size:12px; text-align:center; margin-top:10px; display:none; }
 
   /* HEADER */
-  .header {
-    background: linear-gradient(135deg, #0d1117, #161b27);
-    padding: 14px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 2px solid #00d4ff;
-    position: sticky; top: 0; z-index: 50;
-  }
-  .header-left { display: flex; align-items: center; gap: 10px; }
-  .header h1 { font-size: 17px; color: #00d4ff; font-weight: 700; letter-spacing: 0.5px; }
-  .header-badge { background: rgba(0,212,255,0.15); border: 1px solid #00d4ff; color: #00d4ff; font-size: 10px; padding: 2px 8px; border-radius: 20px; }
-  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4444; animation: pulse 1.5s infinite; flex-shrink: 0; }
-  .status-dot.active { background: #00ff88; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .header { background:linear-gradient(135deg,#0d1117,#161b27); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #00d4ff; position:sticky; top:0; z-index:50; }
+  .header-left { display:flex; align-items:center; gap:8px; }
+  .header h1 { font-size:16px; color:#00d4ff; font-weight:700; }
+  .header-badge { background:rgba(0,212,255,.15); border:1px solid #00d4ff; color:#00d4ff; font-size:10px; padding:2px 7px; border-radius:20px; }
+  .header-right { display:flex; align-items:center; gap:8px; }
+  .user-tag { font-size:11px; color:#8b949e; }
+  .logout-btn { background:none; border:1px solid #30363d; color:#8b949e; padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer; }
+  .status-dot { width:10px; height:10px; border-radius:50%; background:#ff4444; animation:pulse 1.5s infinite; }
+  .status-dot.active { background:#00ff88; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
 
   /* CONFIG */
-  .config-panel { background: #0d1117; margin: 12px; border-radius: 12px; padding: 14px; border: 1px solid #21262d; }
-  .config-panel h3 { color: #8b949e; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-  .config-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-  .config-row label { font-size: 11px; color: #8b949e; width: 100px; flex-shrink: 0; }
-  .config-row input {
-    flex: 1; background: #161b27; border: 1px solid #30363d; color: #e6edf3;
-    padding: 7px 10px; border-radius: 6px; font-size: 12px; transition: border .2s;
-  }
-  .config-row input:focus { outline: none; border-color: #00d4ff; }
-
-  .info-box {
-    background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.25);
-    border-radius: 10px; padding: 10px 14px; margin: 0 12px 12px;
-    font-size: 12px; color: #00d4ff; display: flex; align-items: flex-start; gap: 8px;
-  }
-  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .info-box span { color: #8b949e; display: block; font-size: 11px; margin-top: 2px; }
+  .config-panel { background:#0d1117; margin:12px; border-radius:12px; padding:14px; border:1px solid #21262d; }
+  .config-panel h3 { color:#8b949e; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+  .config-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .config-row label { font-size:11px; color:#8b949e; width:90px; flex-shrink:0; }
+  .config-row input { flex:1; background:#161b27; border:1px solid #30363d; color:#e6edf3; padding:7px 10px; border-radius:6px; font-size:12px; }
+  .config-row input:focus { outline:none; border-color:#00d4ff; }
 
   /* CAMERA */
-  .camera-section {
-    margin: 0 12px 12px; position: relative;
-    border-radius: 14px; overflow: hidden;
-    border: 2px solid #21262d; background: #000;
-    aspect-ratio: 4/3;
-  }
-  #videoFeed { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .camera-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-  .scan-frame {
-    width: 78%; height: 38%; border: 2.5px solid #00d4ff; border-radius: 10px;
-    box-shadow: 0 0 0 1px rgba(0,212,255,.2), 0 0 30px rgba(0,212,255,.15);
-    position: relative;
-  }
-  /* มุมกรอบ */
-  .scan-frame::before, .scan-frame::after,
-  .scan-frame .corner-br, .scan-frame .corner-bl {
-    content: ''; position: absolute; width: 16px; height: 16px; border-color: #00d4ff; border-style: solid;
-  }
-  .scan-frame::before { top: -3px; left: -3px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-  .scan-frame::after { top: -3px; right: -3px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-  .scan-frame .corner-br { bottom: -3px; right: -3px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
-  .scan-frame .corner-bl { bottom: -3px; left: -3px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-  .scan-line {
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
-    animation: scan 2s ease-in-out infinite;
-  }
-  @keyframes scan { 0%{top:0;opacity:1} 95%{top:100%;opacity:.3} 100%{top:0;opacity:0} }
-  .scan-label { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #8b949e; white-space: nowrap; }
+  .camera-section { margin:0 12px 12px; position:relative; border-radius:14px; overflow:hidden; border:2px solid #21262d; background:#000; aspect-ratio:4/3; }
+  #videoFeed { width:100%; height:100%; object-fit:cover; display:block; }
+  .camera-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+  .scan-frame { width:78%; height:38%; border:2.5px solid #00d4ff; border-radius:10px; box-shadow:0 0 30px rgba(0,212,255,.15); position:relative; }
+  .scan-line { position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#00d4ff,transparent); animation:scan 2s ease-in-out infinite; }
+  @keyframes scan { 0%{top:0;opacity:1}95%{top:100%;opacity:.3}100%{top:0;opacity:0} }
+  .scan-label { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:11px; color:#8b949e; white-space:nowrap; }
 
   /* RESULT */
-  .result-box { margin: 0 12px 12px; background: #0d1117; border-radius: 12px; padding: 14px; border: 1px solid #21262d; min-height: 90px; }
-  .result-title { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .result-plate { font-size: 30px; font-weight: 800; letter-spacing: 5px; text-align: center; color: #e6edf3; margin: 6px 0; font-variant-numeric: tabular-nums; }
-  .result-status { text-align: center; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; margin: 8px 0; }
-  .status-pass   { background: rgba(0,255,136,.12); color: #00ff88; border: 1px solid rgba(0,255,136,.4); }
-  .status-fail   { background: rgba(255,68,68,.12); color: #ff6b6b; border: 1px solid rgba(255,68,68,.4); }
-  .status-guest  { background: rgba(255,200,0,.12); color: #ffc800; border: 1px solid rgba(255,200,0,.4); }
-  .status-idle   { background: rgba(100,100,120,.15); color: #8b949e; border: 1px solid #30363d; }
-  .result-owner  { text-align: center; font-size: 12px; color: #8b949e; margin-top: 4px; }
+  .result-box { margin:0 12px 12px; background:#0d1117; border-radius:12px; padding:14px; border:1px solid #21262d; }
+  .result-title { font-size:10px; color:#8b949e; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  .result-plate { font-size:28px; font-weight:800; letter-spacing:4px; text-align:center; color:#e6edf3; margin:6px 0; }
+  .result-car-info { display:flex; gap:8px; justify-content:center; margin-bottom:6px; }
+  .car-tag { background:#161b27; border:1px solid #30363d; border-radius:20px; padding:3px 12px; font-size:12px; color:#8b949e; }
+  .car-tag span { color:#e6edf3; font-weight:600; }
+  .result-status { text-align:center; padding:8px 20px; border-radius:20px; font-size:13px; font-weight:700; margin:8px 0; }
+  .status-pass  { background:rgba(0,255,136,.12); color:#00ff88; border:1px solid rgba(0,255,136,.4); }
+  .status-fail  { background:rgba(255,68,68,.12); color:#ff6b6b; border:1px solid rgba(255,68,68,.4); }
+  .status-guest { background:rgba(255,200,0,.12); color:#ffc800; border:1px solid rgba(255,200,0,.4); }
+  .status-idle  { background:rgba(100,100,120,.15); color:#8b949e; border:1px solid #30363d; }
+  .result-owner { text-align:center; font-size:12px; color:#8b949e; margin-top:4px; }
+
+  /* HISTORY */
+  .history-box { background:rgba(255,200,0,.06); border:1px solid rgba(255,200,0,.3); border-radius:8px; padding:10px 12px; margin-top:8px; display:none; }
+  .history-box h4 { font-size:11px; color:#ffc800; margin-bottom:6px; }
+  .history-item { font-size:11px; color:#8b949e; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+  .history-item:last-child { border-bottom:none; }
 
   /* BUTTONS */
-  .btn-row { display: flex; gap: 8px; margin: 0 12px 12px; }
-  .btn {
-    flex: 1; padding: 14px 8px; border: none; border-radius: 12px;
-    font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s;
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn:active { transform: scale(.95); filter: brightness(.85); }
-  .btn:disabled { opacity: .4; pointer-events: none; }
-  .btn-scan   { background: linear-gradient(135deg, #00d4ff, #0088bb); color: #000; }
-  .btn-id     { background: linear-gradient(135deg, #ffc800, #e08800); color: #000; }
-  .btn-manual { background: linear-gradient(135deg, #00ff88, #00aa55); color: #000; }
-  .btn-icon   { font-size: 22px; line-height: 1; }
-  .btn-text   { font-size: 11px; font-weight: 700; }
+  .btn-row { display:flex; gap:8px; margin:0 12px 12px; }
+  .btn { flex:1; padding:14px 8px; border:none; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; display:flex; flex-direction:column; align-items:center; gap:5px; -webkit-tap-highlight-color:transparent; }
+  .btn:active { transform:scale(.95); filter:brightness(.85); }
+  .btn:disabled { opacity:.4; pointer-events:none; }
+  .btn-scan   { background:linear-gradient(135deg,#00d4ff,#0088bb); color:#000; }
+  .btn-id     { background:linear-gradient(135deg,#ffc800,#e08800); color:#000; }
+  .btn-manual { background:linear-gradient(135deg,#00ff88,#00aa55); color:#000; }
+  .btn-icon { font-size:22px; line-height:1; }
+  .btn-text { font-size:11px; font-weight:700; }
 
   /* LOG */
-  .log-section { margin: 0 12px 24px; background: #0d1117; border-radius: 12px; padding: 14px; border: 1px solid #21262d; }
-  .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .log-header h3 { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
-  .log-clear { background: none; border: 1px solid #30363d; color: #8b949e; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-  .log-clear:hover { border-color: #8b949e; }
-  .log-list { max-height: 180px; overflow-y: auto; }
-  .log-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #161b27; font-size: 12px; align-items: center; }
-  .log-item:last-child { border-bottom: none; }
-  .log-time { color: #8b949e; flex-shrink: 0; width: 52px; font-size: 11px; }
-  .log-plate { font-weight: 700; flex: 1; color: #e6edf3; font-size: 12px; }
-  .log-owner { font-size: 11px; color: #8b949e; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .log-badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-  .badge-pass  { background: rgba(0,255,136,.15); color: #00ff88; }
-  .badge-guest { background: rgba(255,200,0,.15); color: #ffc800; }
+  .log-section { margin:0 12px 24px; background:#0d1117; border-radius:12px; padding:14px; border:1px solid #21262d; }
+  .log-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .log-header h3 { font-size:12px; color:#8b949e; text-transform:uppercase; letter-spacing:1px; }
+  .log-clear { background:none; border:1px solid #30363d; color:#8b949e; padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer; }
+  .log-list { max-height:200px; overflow-y:auto; }
+  .log-item { padding:8px 0; border-bottom:1px solid #161b27; font-size:12px; }
+  .log-item:last-child { border-bottom:none; }
+  .log-row1 { display:flex; gap:8px; align-items:center; margin-bottom:2px; }
+  .log-time { color:#8b949e; flex-shrink:0; width:52px; font-size:11px; }
+  .log-plate { font-weight:700; flex:1; color:#e6edf3; }
+  .log-badge { padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; flex-shrink:0; }
+  .badge-pass  { background:rgba(0,255,136,.15); color:#00ff88; }
+  .badge-guest { background:rgba(255,200,0,.15); color:#ffc800; }
+  .log-row2 { font-size:11px; color:#8b949e; padding-left:60px; }
 
   /* MODAL */
-  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
-  .modal.show { display: flex; }
-  .modal-content { background: #0d1117; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 480px; border-top: 2px solid #00d4ff; }
-  .modal-handle { width: 40px; height: 4px; background: #30363d; border-radius: 2px; margin: 0 auto 16px; }
-  .modal-title { color: #00d4ff; font-size: 15px; font-weight: 700; margin-bottom: 14px; }
-  .id-result { background: #161b27; border-radius: 10px; padding: 14px; border: 1px solid #21262d; }
-  .id-field { padding: 6px 0; border-bottom: 1px solid #21262d; display: flex; gap: 8px; }
-  .id-field:last-child { border-bottom: none; }
-  .id-label { color: #8b949e; font-size: 11px; width: 80px; flex-shrink: 0; padding-top: 1px; }
-  .id-value { color: #e6edf3; font-size: 13px; font-weight: 600; flex: 1; }
-  .modal-btn-row { display: flex; gap: 8px; margin-top: 14px; }
-  .modal-btn { flex: 1; padding: 13px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .modal-btn-save   { background: #00ff88; color: #000; }
-  .modal-btn-cancel { background: #21262d; color: #8b949e; }
+  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:100; align-items:flex-end; justify-content:center; }
+  .modal.show { display:flex; }
+  .modal-content { background:#0d1117; border-radius:20px 20px 0 0; padding:20px; width:100%; max-width:480px; border-top:2px solid #ffc800; }
+  .modal-content.blue { border-top-color:#00d4ff; }
+  .modal-handle { width:40px; height:4px; background:#30363d; border-radius:2px; margin:0 auto 16px; }
+  .modal-title { font-size:15px; font-weight:700; margin-bottom:14px; color:#ffc800; }
+  .modal-title.blue { color:#00d4ff; }
+  .modal-field { margin-bottom:12px; }
+  .modal-field label { display:block; font-size:11px; color:#8b949e; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+  .modal-field input { width:100%; background:#161b27; border:1px solid #30363d; color:#e6edf3; padding:10px 14px; border-radius:8px; font-size:14px; }
+  .modal-field input:focus { outline:none; border-color:#ffc800; }
+  .modal-car-info { background:#161b27; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:12px; color:#8b949e; }
+  .modal-car-info b { color:#e6edf3; }
+  .modal-btn-row { display:flex; gap:8px; margin-top:14px; }
+  .modal-btn { flex:1; padding:13px; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; }
+  .modal-btn-save   { background:#ffc800; color:#000; }
+  .modal-btn-cancel { background:#21262d; color:#8b949e; }
+  .id-result { background:#161b27; border-radius:10px; padding:14px; border:1px solid #21262d; margin-bottom:12px; }
+  .id-field { padding:6px 0; border-bottom:1px solid #21262d; display:flex; gap:8px; }
+  .id-field:last-child { border-bottom:none; }
+  .id-label { color:#8b949e; font-size:11px; width:80px; flex-shrink:0; }
+  .id-value { color:#e6edf3; font-size:13px; font-weight:600; flex:1; }
 
   /* LOADING */
-  .loading { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; backdrop-filter: blur(4px); }
-  .loading.show { display: flex; }
-  .spinner { width: 48px; height: 48px; border: 3px solid #21262d; border-top: 3px solid #00d4ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { color: #00d4ff; font-size: 14px; font-weight: 600; }
+  .loading { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:200; align-items:center; justify-content:center; flex-direction:column; gap:16px; backdrop-filter:blur(4px); }
+  .loading.show { display:flex; }
+  .spinner { width:48px; height:48px; border:3px solid #21262d; border-top:3px solid #00d4ff; border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text { color:#00d4ff; font-size:14px; font-weight:600; }
 
-  canvas { display: none; }
-  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #0d1117; } ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+  canvas { display:none; }
+  .hidden { display:none !important; }
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🚗</div>
+    <div class="login-title">AI Vision Gate</div>
+    <div class="login-sub">v5 — ระบบควบคุมประตูอัจฉริยะ</div>
+    <div class="login-url">
+      <label>Apps Script URL</label>
+      <input type="url" id="loginScriptUrl" placeholder="https://script.google.com/macros/s/..." />
+    </div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="กรอก Username" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="กรอก Password" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔑 เข้าสู่ระบบ</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+
 <div class="header">
   <div class="header-left">
     <h1>🚗 AI Vision Gate</h1>
-    <span class="header-badge">v3</span>
+    <span class="header-badge">v5</span>
   </div>
-  <div class="status-dot" id="statusDot"></div>
+  <div class="header-right">
+    <span class="user-tag" id="userTag"></span>
+    <button class="logout-btn" onclick="doLogout()">ออก</button>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
 </div>
 
-<!-- CONFIG -->
 <div class="config-panel">
   <h3>⚙️ ตั้งค่าระบบ</h3>
   <div class="config-row">
     <label>ESP32 IP</label>
-    <input type="text" id="esp32IP" placeholder="192.168.1.xxx" inputmode="decimal" />
-  </div>
-  <div class="config-row">
-    <label>Apps Script URL</label>
-    <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." />
+    <input type="text" id="esp32IP" placeholder="192.168.1.xxx" />
   </div>
 </div>
 
-<div class="info-box">
-  <span class="icon">🔐</span>
-  <div>
-    ไม่ต้องใส่ Gemini API Key ในแอป!
-    <span>v3 ส่งรูปผ่าน Apps Script — Key อยู่หลังบ้านปลอดภัย 100%</span>
-  </div>
-</div>
-
-<!-- CAMERA -->
 <div class="camera-section">
   <video id="videoFeed" autoplay playsinline muted></video>
   <div class="camera-overlay">
     <div class="scan-frame">
       <div class="scan-line"></div>
-      <span class="corner-br"></span>
-      <span class="corner-bl"></span>
       <span class="scan-label">วางป้ายทะเบียนในกรอบ</span>
     </div>
   </div>
 </div>
 <canvas id="captureCanvas"></canvas>
 
-<!-- RESULT -->
 <div class="result-box">
   <div class="result-title">ผลการตรวจสอบ</div>
   <div class="result-plate" id="plateTxt">-</div>
+  <div class="result-car-info" id="carInfo" style="display:none">
+    <div class="car-tag">🚗 <span id="carBrand">-</span></div>
+    <div class="car-tag">🎨 <span id="carColor">-</span></div>
+  </div>
   <div class="result-status status-idle" id="statusTxt">รอการสแกน...</div>
   <div class="result-owner" id="ownerTxt"></div>
+  <div class="history-box" id="historyBox">
+    <h4>📋 ประวัติการเข้า</h4>
+    <div id="historyList"></div>
+  </div>
 </div>
 
-<!-- BUTTONS -->
 <div class="btn-row">
   <button class="btn btn-scan" id="btnScan" onclick="scanPlate()">
     <span class="btn-icon">📸</span>
@@ -212,7 +225,6 @@
   </button>
 </div>
 
-<!-- LOG -->
 <div class="log-section">
   <div class="log-header">
     <h3>📋 บันทึกเข้า-ออก</h3>
@@ -223,17 +235,46 @@
   </div>
 </div>
 
-<!-- ID MODAL -->
-<div class="modal" id="idModal">
+</div><!-- end mainApp -->
+
+<!-- MODAL: ผู้มาติดต่อ -->
+<div class="modal" id="visitorModal">
   <div class="modal-content">
     <div class="modal-handle"></div>
-    <div class="modal-title">🪪 ข้อมูลผู้มาติดต่อ</div>
-    <div class="id-result" id="idResult">
-      <div class="id-field"><span class="id-label">กำลังอ่าน</span><span class="id-value">...</span></div>
+    <div class="modal-title">⚠️ ผู้มาติดต่อ</div>
+    <div class="modal-car-info" id="visitorCarInfo"></div>
+    <div class="modal-field">
+      <label>มาติดต่อบ้านเลขที่</label>
+      <input type="text" id="visitorHouse" placeholder="เช่น 12/3" inputmode="decimal" />
+    </div>
+    <div class="modal-field">
+      <label>เบอร์โทรติดต่อ</label>
+      <input type="tel" id="visitorPhone" placeholder="0812345678" />
+    </div>
+    <div class="modal-btn-row">
+      <button class="modal-btn modal-btn-save" onclick="saveVisitorAndOpen()">✅ บันทึก & เปิดประตู</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('visitorModal')">❌ ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ID Card -->
+<div class="modal" id="idModal">
+  <div class="modal-content blue">
+    <div class="modal-handle"></div>
+    <div class="modal-title blue">🪪 ข้อมูลผู้มาติดต่อ</div>
+    <div class="id-result" id="idResult"></div>
+    <div class="modal-field">
+      <label>มาติดต่อบ้านเลขที่</label>
+      <input type="text" id="idHouse" placeholder="เช่น 12/3" />
+    </div>
+    <div class="modal-field">
+      <label>เบอร์โทรติดต่อ</label>
+      <input type="tel" id="idPhone" placeholder="0812345678" />
     </div>
     <div class="modal-btn-row">
       <button class="modal-btn modal-btn-save" onclick="saveGuestAndOpen()">✅ บันทึก & เปิดประตู</button>
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">❌ ยกเลิก</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('idModal')">❌ ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -245,66 +286,109 @@
 </div>
 
 <script>
-// ============================================================
-// STATE
-// ============================================================
 let stream = null;
 let currentPlate = '';
+let currentBrand = '';
+let currentColor = '';
 let currentIDData = null;
+let currentUser = null;
 let logData = [];
+
+// ============================================================
+// LOGIN
+// ============================================================
+async function doLogin() {
+  const scriptUrl = document.getElementById('loginScriptUrl').value.trim();
+  const username  = document.getElementById('loginUser').value.trim();
+  const password  = document.getElementById('loginPass').value.trim();
+  const errEl     = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!scriptUrl) { errEl.textContent = 'กรุณาใส่ Apps Script URL'; errEl.style.display='block'; return; }
+  if (!username || !password) { errEl.textContent = 'กรุณากรอก Username และ Password'; errEl.style.display='block'; return; }
+
+  localStorage.setItem('gate_appsScriptUrl', scriptUrl);
+  showLoading('กำลังเข้าสู่ระบบ...');
+
+  try {
+    const res = await fetch(scriptUrl + '?action=login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentUser = data;
+      localStorage.setItem('gate_user', JSON.stringify(data));
+      showApp();
+    } else {
+      errEl.textContent = data.message || 'Username หรือ Password ไม่ถูกต้อง';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = 'เชื่อมต่อ Server ไม่ได้: ' + e.message;
+    errEl.style.display = 'block';
+  }
+  hideLoading();
+}
+
+function doLogout() {
+  localStorage.removeItem('gate_user');
+  currentUser = null;
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('loginScreen').style.display = 'flex';
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').classList.remove('hidden');
+  document.getElementById('userTag').textContent = currentUser.username + (currentUser.role==='admin' ? ' (Admin)' : '');
+  const ip = localStorage.getItem('gate_esp32IP');
+  if (ip) document.getElementById('esp32IP').value = ip;
+  initCamera();
+}
 
 // ============================================================
 // CAMERA
 // ============================================================
 async function initCamera() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
+    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment', width:{ideal:1280}, height:{ideal:720} } });
     document.getElementById('videoFeed').srcObject = stream;
     document.getElementById('statusDot').classList.add('active');
-  } catch (e) {
-    alert('ไม่สามารถเปิดกล้องได้: ' + e.message);
-  }
+  } catch(e) { alert('ไม่สามารถเปิดกล้องได้: ' + e.message); }
 }
 
-// ============================================================
-// CAPTURE — ลดขนาดก่อนส่ง (ประหยัด quota + เร็วขึ้น)
-// ============================================================
 function captureFrame() {
   const video = document.getElementById('videoFeed');
   const canvas = document.getElementById('captureCanvas');
-  // จำกัดขนาดไม่เกิน 800px — ลด token ใช้กับ Gemini
   const maxW = 800;
   const ratio = Math.min(1, maxW / video.videoWidth);
   canvas.width  = Math.round(video.videoWidth  * ratio);
   canvas.height = Math.round(video.videoHeight * ratio);
   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', 0.65).split(',')[1]; // quality 0.65 เพียงพอ
+  return canvas.toDataURL('image/jpeg', 0.65).split(',')[1];
 }
 
 // ============================================================
-// CALL GEMINI — ผ่าน Apps Script Proxy เท่านั้น
+// GEMINI PROXY
 // ============================================================
 async function callGeminiProxy(base64Image, prompt) {
   const url = getScriptUrl();
-  if (!url) { alert('กรุณาใส่ Apps Script URL ในการตั้งค่าก่อน'); return null; }
-
-  // ⚠️ ต้องใช้ text/plain ไม่ใช่ application/json
-  // เพราะ Apps Script จะเกิด CORS preflight error ถ้าใช้ application/json
-  const response = await fetch(url + '?action=scanImage', {
+  if (!url) { alert('ไม่พบ Apps Script URL'); return null; }
+  const res = await fetch(url + '?action=scanImage', {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ image: base64Image, prompt: prompt })
+    body: JSON.stringify({ image: base64Image, prompt })
   });
-
-  const data = await response.json();
+  const data = await res.json();
   if (data.error) { alert('Gemini Error: ' + data.error); return null; }
   return data.result || null;
 }
 
 // ============================================================
-// SCAN LICENSE PLATE
+// SCAN PLATE — อ่านทะเบียน + ยี่ห้อ + สี
 // ============================================================
 async function scanPlate() {
   const btn = document.getElementById('btnScan');
@@ -313,67 +397,128 @@ async function scanPlate() {
 
   try {
     const img = captureFrame();
-    const prompt = `อ่านป้ายทะเบียนรถในภาพนี้ ตอบเฉพาะเลขทะเบียนเท่านั้น เช่น "กข 1234 ขอนแก่น" หรือ "5กข 678 ขอนแก่น" ถ้าไม่เห็นป้ายทะเบียน ตอบว่า "ไม่พบ"`;
-    const result = await callGeminiProxy(img, prompt);
+    const prompt = `อ่านข้อมูลรถในภาพนี้ ตอบเป็น JSON เท่านั้น ไม่มี markdown:
+{"plate":"เลขทะเบียน เช่น กข 1234 ขอนแก่น","brand":"ยี่ห้อรถ เช่น Toyota Camry","color":"สีรถ เช่น ขาว"}
+ถ้าไม่เห็นทะเบียน ตอบ: {"error":"ไม่พบ"}`;
 
-    if (!result || result.includes('ไม่พบ')) {
-      showResult('-', 'ไม่พบป้ายทะเบียน', 'idle', '');
+    const result = await callGeminiProxy(img, prompt);
+    if (!result) { btn.disabled=false; hideLoading(); return; }
+
+    let carData;
+    try {
+      carData = JSON.parse(result.replace(/```json|```/g,'').trim());
+    } catch(e) {
+      // fallback ถ้า Gemini ไม่ตอบ JSON
+      carData = { plate: result, brand: '-', color: '-' };
+    }
+
+    if (carData.error || !carData.plate) {
+      showResult('-','ไม่พบป้ายทะเบียน','idle','');
+      hideCarInfo();
     } else {
-      currentPlate = result.toUpperCase().replace(/\s+/g, ' ').trim();
+      currentPlate = carData.plate.toUpperCase().replace(/\s+/g,' ').trim();
+      currentBrand = carData.brand || '-';
+      currentColor = carData.color || '-';
       document.getElementById('plateTxt').textContent = currentPlate;
+      showCarInfo(currentBrand, currentColor);
       await checkPlateInSheet(currentPlate);
     }
-  } catch (e) {
-    showResult('-', '❌ เกิดข้อผิดพลาด', 'fail', e.message);
+  } catch(e) {
+    showResult('-','❌ เกิดข้อผิดพลาด','fail', e.message);
   }
 
   btn.disabled = false;
   hideLoading();
 }
 
+function showCarInfo(brand, color) {
+  document.getElementById('carInfo').style.display = 'flex';
+  document.getElementById('carBrand').textContent = brand;
+  document.getElementById('carColor').textContent = color;
+}
+function hideCarInfo() {
+  document.getElementById('carInfo').style.display = 'none';
+}
+
 // ============================================================
-// CHECK PLATE IN SHEET
+// CHECK PLATE
 // ============================================================
 async function checkPlateInSheet(plate) {
   const url = getScriptUrl();
   if (!url) return;
-
   showLoading('กำลังเช็คทะเบียน...');
-
   try {
     const res = await fetch(`${url}?action=checkPlate&plate=${encodeURIComponent(plate)}`);
     const data = await res.json();
 
-    if (data.found) {
+    if (data.found && data.type === 'resident') {
       showResult(plate, '✅ อนุญาต — เปิดประตู!', 'pass',
-        `เจ้าของ: ${data.owner || '-'}  |  บ้านเลขที่: ${data.house || '-'}`);
+        `ลูกบ้าน: ${data.owner} | บ้านเลขที่: ${data.house}`);
+      document.getElementById('historyBox').style.display = 'none';
       await openGateESP32();
-      addLog(plate, 'pass', data.owner || '');
+      await sendLog({ plate, type:'ลูกบ้าน', house:data.house, phone:data.phone, brand:currentBrand, color:currentColor });
+      addLog(plate, 'pass', `ลูกบ้าน บ้านเลขที่ ${data.house}`, currentBrand, currentColor);
     } else {
-      showResult(plate, '⚠️ ไม่พบในระบบ — แจ้งยามด้วย', 'guest', 'รถไม่ได้ลงทะเบียน');
-      addLog(plate, 'guest', 'ไม่ทราบ');
+      showResult(plate, '⚠️ ผู้มาติดต่อ', 'guest', 'กรุณากรอกข้อมูลด้านล่าง');
+      if (data.history && data.history.length > 0) showHistory(data.history);
+      else document.getElementById('historyBox').style.display = 'none';
+      // popup
+      document.getElementById('visitorCarInfo').innerHTML =
+        `<b>${plate}</b> &nbsp;|&nbsp; 🚗 ${currentBrand} &nbsp;|&nbsp; 🎨 ${currentColor}`;
+      document.getElementById('visitorHouse').value = '';
+      document.getElementById('visitorPhone').value = '';
+      document.getElementById('visitorModal').classList.add('show');
     }
-  } catch (e) {
-    showResult(plate, '❌ เชื่อม Sheet ไม่ได้', 'fail', e.message);
+  } catch(e) {
+    showResult(plate,'❌ เชื่อม Sheet ไม่ได้','fail',e.message);
   }
-
   hideLoading();
 }
 
 // ============================================================
-// ESP32 GATE
+// SAVE VISITOR
+// ============================================================
+async function saveVisitorAndOpen() {
+  const house = document.getElementById('visitorHouse').value.trim();
+  const phone = document.getElementById('visitorPhone').value.trim();
+  closeModal('visitorModal');
+  showLoading('กำลังบันทึกและเปิดประตู...');
+  await openGateESP32();
+  await sendLog({ plate:currentPlate, type:'ผู้มาติดต่อ', house, phone, brand:currentBrand, color:currentColor });
+  addLog(currentPlate, 'guest', `บ้านเลขที่ ${house}`, currentBrand, currentColor);
+  showResult(currentPlate, '✅ บันทึกแล้ว — เปิดประตู!', 'pass', `ผู้มาติดต่อ บ้านเลขที่ ${house}`);
+  hideLoading();
+}
+
+// ============================================================
+// SEND LOG
+// ============================================================
+async function sendLog(payload) {
+  const url = getScriptUrl();
+  if (!url) return;
+  try {
+    await fetch(url + '?action=logEntry', {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn('Log failed:', e); }
+}
+
+// ============================================================
+// ESP32
 // ============================================================
 async function openGateESP32() {
   const ip = document.getElementById('esp32IP').value.trim();
   if (!ip) return;
-  try { await fetch(`http://${ip}/open`, { method: 'GET', mode: 'cors', signal: AbortSignal.timeout(3000) }); }
-  catch (e) { console.warn('ESP32 ตอบไม่ได้:', e.message); }
+  try { await fetch(`http://${ip}/open`, { method:'GET', mode:'cors', signal:AbortSignal.timeout(3000) }); }
+  catch(e) { console.warn('ESP32:', e.message); }
 }
 
 async function openGateManual() {
   await openGateESP32();
-  addLog('เปิดด่วน', 'pass', 'เจ้าหน้าที่');
-  showResult('MANUAL', '✅ เปิดประตูด่วน', 'pass', 'เปิดโดยเจ้าหน้าที่');
+  await sendLog({ plate:'MANUAL', type:'เปิดด่วน', house:'-', phone:'-', note: currentUser?.username });
+  addLog('เปิดด่วน','pass','เจ้าหน้าที่','','');
+  showResult('MANUAL','✅ เปิดประตูด่วน','pass','เปิดโดยเจ้าหน้าที่');
 }
 
 // ============================================================
@@ -381,68 +526,52 @@ async function openGateManual() {
 // ============================================================
 async function scanIDCard() {
   showLoading('กำลังอ่านบัตรประชาชน...');
-
   try {
     const img = captureFrame();
     const prompt = `อ่านบัตรประชาชนไทยในภาพ ตอบเป็น JSON เท่านั้น ไม่มี markdown:
 {"id":"เลขบัตร 13 หลัก","name":"ชื่อ-นามสกุล","dob":"วันเกิด","address":"ที่อยู่"}
 ถ้าไม่เห็นบัตร ตอบ: {"error":"ไม่พบบัตร"}`;
-
     const result = await callGeminiProxy(img, prompt);
     if (!result) { hideLoading(); return; }
-
-    try {
-      const idData = JSON.parse(result.replace(/```json|```/g, '').trim());
-      if (idData.error) {
-        alert('ไม่พบบัตรประชาชนในภาพ กรุณาลองใหม่');
-      } else {
-        currentIDData = idData;
-        showIDModal(idData);
-      }
-    } catch (e) {
-      alert('อ่านบัตรไม่ได้ กรุณาถ่ายใหม่ให้ชัดขึ้น');
+    const idData = JSON.parse(result.replace(/```json|```/g,'').trim());
+    if (idData.error) { alert('ไม่พบบัตรประชาชนในภาพ'); }
+    else {
+      currentIDData = idData;
+      document.getElementById('idResult').innerHTML = `
+        <div class="id-field"><span class="id-label">เลขบัตร</span><span class="id-value">${idData.id||'-'}</span></div>
+        <div class="id-field"><span class="id-label">ชื่อ-สกุล</span><span class="id-value">${idData.name||'-'}</span></div>
+        <div class="id-field"><span class="id-label">วันเกิด</span><span class="id-value">${idData.dob||'-'}</span></div>
+        <div class="id-field"><span class="id-label">ที่อยู่</span><span class="id-value">${idData.address||'-'}</span></div>
+      `;
+      document.getElementById('idHouse').value = '';
+      document.getElementById('idPhone').value = '';
+      document.getElementById('idModal').classList.add('show');
     }
-  } catch (e) {
-    alert('เกิดข้อผิดพลาด: ' + e.message);
-  }
-
+  } catch(e) { alert('อ่านบัตรไม่ได้ กรุณาถ่ายใหม่'); }
   hideLoading();
 }
 
-function showIDModal(data) {
-  document.getElementById('idResult').innerHTML = `
-    <div class="id-field"><span class="id-label">เลขบัตร</span><span class="id-value">${data.id || '-'}</span></div>
-    <div class="id-field"><span class="id-label">ชื่อ-สกุล</span><span class="id-value">${data.name || '-'}</span></div>
-    <div class="id-field"><span class="id-label">วันเกิด</span><span class="id-value">${data.dob || '-'}</span></div>
-    <div class="id-field"><span class="id-label">ที่อยู่</span><span class="id-value">${data.address || '-'}</span></div>
-    <div class="id-field"><span class="id-label">เวลา</span><span class="id-value">${new Date().toLocaleString('th-TH')}</span></div>
-  `;
-  document.getElementById('idModal').classList.add('show');
-}
-
 async function saveGuestAndOpen() {
-  closeModal();
+  const house = document.getElementById('idHouse').value.trim();
+  const phone = document.getElementById('idPhone').value.trim();
+  closeModal('idModal');
   if (!currentIDData) return;
   showLoading('กำลังบันทึกและเปิดประตู...');
-
   const url = getScriptUrl();
   if (url) {
     try {
       await fetch(url + '?action=saveGuest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ ...currentIDData, plate: currentPlate, timestamp: new Date().toISOString() })
+        method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ ...currentIDData, plate:currentPlate, house, phone })
       });
-    } catch (e) { console.warn('บันทึกไม่สำเร็จ:', e); }
+    } catch(e) { console.warn('Save failed:', e); }
   }
-
   await openGateESP32();
-  addLog(currentPlate || 'แขก', 'guest', currentIDData.name || '-');
-  showResult(currentPlate || '-', '✅ บันทึกแล้ว — เปิดประตู!', 'pass', `ผู้มาติดต่อ: ${currentIDData.name || '-'}`);
+  await sendLog({ plate:currentPlate||'-', type:'ผู้มาติดต่อ (บัตร ปชช.)', house, phone, brand:currentBrand, color:currentColor });
+  addLog(currentPlate||'แขก','guest',`${currentIDData.name||'-'} บ้านเลขที่ ${house}`,'','');
+  showResult(currentPlate||'-','✅ บันทึกแล้ว — เปิดประตู!','pass',`ผู้มาติดต่อ: ${currentIDData.name||'-'}`);
   hideLoading();
 }
-
-function closeModal() { document.getElementById('idModal').classList.remove('show'); }
 
 // ============================================================
 // UI HELPERS
@@ -455,9 +584,17 @@ function showResult(plate, status, type, owner) {
   document.getElementById('ownerTxt').textContent = owner;
 }
 
-function addLog(plate, type, owner) {
-  const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-  logData.unshift({ time, plate, type, owner });
+function showHistory(history) {
+  const box = document.getElementById('historyBox');
+  box.style.display = 'block';
+  document.getElementById('historyList').innerHTML = history.map(h =>
+    `<div class="history-item">📅 ${h.date} — บ้านเลขที่ ${h.house} โทร ${h.phone}</div>`
+  ).join('');
+}
+
+function addLog(plate, type, info, brand, color) {
+  const time = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  logData.unshift({time, plate, type, info, brand, color});
   if (logData.length > 50) logData.pop();
   renderLog();
 }
@@ -470,39 +607,40 @@ function renderLog() {
   }
   list.innerHTML = logData.map(i => `
     <div class="log-item">
-      <span class="log-time">${i.time}</span>
-      <span class="log-plate">${i.plate}</span>
-      <span class="log-owner">${i.owner}</span>
-      <span class="log-badge badge-${i.type}">${i.type === 'pass' ? 'ผ่าน' : 'แขก'}</span>
+      <div class="log-row1">
+        <span class="log-time">${i.time}</span>
+        <span class="log-plate">${i.plate}</span>
+        <span class="log-badge badge-${i.type}">${i.type==='pass'?'ผ่าน':'แขก'}</span>
+      </div>
+      <div class="log-row2">${i.info}${i.brand&&i.brand!=='-'?' | 🚗'+i.brand:''}${i.color&&i.color!=='-'?' 🎨'+i.color:''}</div>
     </div>`).join('');
 }
 
 function clearLog() { logData = []; renderLog(); }
-function showLoading(t) { document.getElementById('loadingText').textContent = t; document.getElementById('loading').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function showLoading(t) { document.getElementById('loadingText').textContent=t; document.getElementById('loading').classList.add('show'); }
 function hideLoading() { document.getElementById('loading').classList.remove('show'); }
-function getScriptUrl() { return document.getElementById('appsScriptUrl').value.trim(); }
+function getScriptUrl() { return localStorage.getItem('gate_appsScriptUrl') || ''; }
 
-// ============================================================
-// CONFIG — localStorage
-// ============================================================
-function loadConfig() {
-  ['esp32IP', 'appsScriptUrl'].forEach(k => {
-    const v = localStorage.getItem('gate_' + k);
-    if (v) document.getElementById(k).value = v;
-  });
-}
-function saveConfig() {
-  ['esp32IP', 'appsScriptUrl'].forEach(k => {
-    localStorage.setItem('gate_' + k, document.getElementById(k).value);
-  });
-}
-document.querySelectorAll('.config-row input').forEach(i => i.addEventListener('change', saveConfig));
+// CONFIG
+document.getElementById('esp32IP').addEventListener('change', () => {
+  localStorage.setItem('gate_esp32IP', document.getElementById('esp32IP').value);
+});
 
-// ============================================================
-// INIT
-// ============================================================
-loadConfig();
-initCamera();
+// INIT — เช็ค session
+const savedUser = localStorage.getItem('gate_user');
+const savedUrl  = localStorage.getItem('gate_appsScriptUrl');
+if (savedUser && savedUrl) {
+  currentUser = JSON.parse(savedUser);
+  showApp();
+} else {
+  if (savedUrl) document.getElementById('loginScriptUrl').value = savedUrl;
+}
+
+// Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+});
 </script>
 </body>
 </html>
